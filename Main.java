@@ -1,18 +1,25 @@
 package Simulator;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Main {
     JFrame f;
+    JTextArea tarea;
+    Registers r;
+    JScrollPane scrollPane = new JScrollPane(tarea);
     private JButton button1;
     Main(BufferedReader file){
+        // does not help much btw
+       tarea = new JTextArea(10, 10);
+       // tarea.setBounds(80,100,200,200);
         f=new JFrame();//creating instance of JFrame
-        Memory m = Memory.getInstance();
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Memory m = Memory.getInstance(); //
+
         Parser p0 = new Parser(file);
         JButton b = new JButton("Simulate");//creating instance of JButton
         b.setBounds(70,400,90, 20);
@@ -53,7 +60,11 @@ public class Main {
             lbw1.get(i).setText(String.valueOf(p0.getalu().getReg()[i]));
             panel2.add(lbw1.get(i));
         }
-
+                try {
+            tarea.read(file,"Reading");// leta try with some small file which fits our bound
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         b.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -65,11 +76,12 @@ public class Main {
                 l.setText(sb.toString());
                 for(int i=0;i<=19;i++)
                 {
-                    lbw1.get(i).setText(String.valueOf(p0.getReg()[i]));
+                    lbw1.get(i).setText(String.valueOf(r.getC()[i]));
                     panel2.add(lbw1.get(i));
                 }
             }
         });
+
         f.add(b);//adding button in JFrame
         f.add(l2);
         f.add(l3);
@@ -77,16 +89,20 @@ public class Main {
         f.add(panel);
         f.add(panel2);
         f.setSize(400,500);//400 width and 500 height
-        f.setLayout(null);//using no layout managers
-        f.setVisible(true);//making the frame visible
+        f.setLayout(null);
+        f.add(tarea);
+       //f.pack();//using no layout managers
+        f.setVisible(true);
+       //making the frame visible
     }
 
     public static void main(String[] args) {
         BufferedReader file;
         try {
-            file = new BufferedReader(new FileReader("C:/Users/Shruti priya/Downloads/bubblesort.asm"));
+            file = new BufferedReader(new InputStreamReader(new FileInputStream("C:/Users/Shruti priya/Downloads/bubblesort.asm")));
 //                PreParser q = new PreParser(file);
 //            Parser p = new Parser(file);
+
             new Main(file);
 
         } catch (FileNotFoundException e) {

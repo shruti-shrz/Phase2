@@ -9,12 +9,12 @@ public class ALU {
     Dictionary<String,Integer> opcodes;
     ArrayList<String> allLines;
     HashMap<String,Integer> base;
-    Simulator.Memory memory;
     static int counter;
     static ALU alu;
+    Registers r;
     HashMap<String,Integer> labels;
     public ALU(BufferedReader f,ArrayList<String> all,HashMap<String,Integer> b,HashMap<String,Integer> Labels){
-       latch = new int[20];
+       latch = new int[32];
 
 //        q = new PreParser(f);
         allLines = all;
@@ -26,16 +26,16 @@ public class ALU {
     }
 
 
-    public int executer(String[] arr,int[] Registers){
-        System.out.print(labels);
-        latch = Registers;
+    public int executer(String[] arr){
+        //System.out.print(labels);
+       // for(int i=0;i<Registers.length;i++)
+         //    latch[i] = Registers[i];
+      //  latch = Registers;
         // System.out.println(counter);
-        String  line;
-        int i=0;
 //        for(int j=0;j<arr.length;j++){
 //            System.out.print(arr[j]+" ");
 //        }
-        System.out.println();
+        //System.out.println();
         try{
 //            while (counter < allLines.size()) {
 //                line = allLines.get(counter);
@@ -64,14 +64,18 @@ public class ALU {
 //                    continue;
 //                }
                 if(Integer.parseInt(arr[0]) == 0){
-                    latch[Integer.parseInt(arr[1])] = latch[Integer.parseInt(arr[2])]+latch[Integer.parseInt(arr[3])];
+                    int l = r.getreg(Integer.parseInt(arr[2]));
+                    int m = r.getreg(Integer.parseInt(arr[3]));
+                    latch[Integer.parseInt(arr[1])] = l+m;
 //                   System.out.println(Registers);
                     counter++;
-                    return latch[Integer.parseInt(arr[1])];
+                    return latch[Integer.parseInt(arr[1])];// this is val, when is val = -1
 //                    continue;
                 }
             if(Integer.parseInt(arr[0]) == 1){
-                latch[Integer.parseInt(arr[1])] = latch[Integer.parseInt(arr[2])]-latch[Integer.parseInt(arr[3])];
+                int l = r.getreg(Integer.parseInt(arr[2]));
+                int m = r.getreg(Integer.parseInt(arr[3]));
+                latch[Integer.parseInt(arr[1])] = l-m;
 //                   System.out.println(Registers);
                 counter++;
                 return latch[Integer.parseInt(arr[1])];
@@ -80,7 +84,9 @@ public class ALU {
             if(Integer.parseInt(arr[0]) == 2){
 //                   System.out.println(memory.get(Registers[Integer.parseInt(set[2].substring(3,set[2].length()-1))] + Integer.parseInt(set[2].substring(0,t))));
              //   latch[Integer.parseInt(arr[1])] = memory.getMem().get(latch[Integer.parseInt(arr[2])] + Integer.parseInt(arr[3]));
-                latch[Integer.parseInt(arr[1])] = latch[Integer.parseInt(arr[2])] + Integer.parseInt(arr[3]);
+                int l = r.getreg(Integer.parseInt(arr[2]));
+                latch[Integer.parseInt(arr[1])] = l + Integer.parseInt(arr[3]);
+
                 // System.out.println(Registers[Integer.parseInt(set[1].substring(1))]);
 //                   System.out.println(Integer.parseInt(set[2].substring(0,t)));
                 counter++;
@@ -88,8 +94,8 @@ public class ALU {
 //                    continue;
             }
             if(Integer.parseInt(arr[0]) == 3){
-//                    System.out.println("Check");
-                int index = (latch[Integer.parseInt(arr[2])] + Integer.parseInt(arr[3]));
+                int l = r.getreg(Integer.parseInt(arr[2]));
+                int index = l + Integer.parseInt(arr[3]);
                 //memory.getMem().set(index,latch[Integer.parseInt(arr[1])]);
                // System.out.println(memory);
                 counter++;
@@ -97,7 +103,9 @@ public class ALU {
 //                    continue;
             }
             if(Integer.parseInt(arr[0]) == 4){
-                if(latch[Integer.parseInt(arr[2])]<latch[Integer.parseInt(arr[3])]){
+                int l = r.getreg(Integer.parseInt(arr[2]));
+                int m = r.getreg(Integer.parseInt(arr[3]));
+                if(l<m){
                     latch[Integer.parseInt(arr[1])] = 1;
                 }
                 else
@@ -111,7 +119,9 @@ public class ALU {
 //                    continue;
             }
             if(Integer.parseInt(arr[0]) == 5){
-                if( latch[Integer.parseInt(arr[1])]!= latch[Integer.parseInt(arr[2])]){
+                int l = r.getreg(Integer.parseInt(arr[1]));
+                int m = r.getreg(Integer.parseInt(arr[2]));
+                if( l!= m){
                     counter = labels.get(arr[3])+1;
                 }else
                     counter++;
@@ -119,8 +129,10 @@ public class ALU {
 //                    continue;
             }
             if(Integer.parseInt(arr[0]) == 6){
-                if( latch[Integer.parseInt(arr[1])]== latch[Integer.parseInt(arr[2])]){
-                    System.out.print(labels.get(arr[3])+" gjhdgfh");
+                int l = r.getreg(Integer.parseInt(arr[1]));
+                int m = r.getreg(Integer.parseInt(arr[2]));
+                if(l == m){
+                    //System.out.print(labels.get(arr[3])+" gjhdgfh");
                     int t = labels.get(arr[3]);
                     counter = t+1;
                 }else
@@ -136,22 +148,19 @@ public class ALU {
             }
                 if(Integer.parseInt(arr[0])==9){
                     latch[Integer.parseInt(arr[1])] = Integer.parseInt(arr[2]);
-//                  System.out.println(Registers[(int)set[1].charAt(1)]);
-//                   System.out.println(Registers);
                     counter++;
                     return latch[Integer.parseInt(arr[1])];
 //                    continue;
                 }
                 if(Integer.parseInt(arr[0]) == 10) {
-                    latch[Integer.parseInt(arr[1])] = latch[Integer.parseInt(arr[2])] + Integer.parseInt(arr[3]);
-//                  System.out.println(Registers[(int)set[1].charAt(1)]);
-//                   System.out.println(Registers)
+                    int l = r.getreg(Integer.parseInt(arr[2]));
+                    latch[Integer.parseInt(arr[1])] = l + Integer.parseInt(arr[3]);
                     counter++;
                     return latch[Integer.parseInt(arr[1])];
 //                    continue;
                 }
                 if(Integer.parseInt(arr[0]) == 11){
-                    System.out.println(base.get(arr[2]));
+                  //  System.out.println(base.get(arr[2]));
                     latch[Integer.parseInt(arr[1])] = base.get(arr[2]);
 //                   System.out.println(Registers);
                     counter++;
@@ -179,7 +188,7 @@ public class ALU {
             e.printStackTrace();
         }
         return 0;
-//        System.out.println(memory);
+ //       System.out.println(memory);
     }
 
     int[] getReg(){
@@ -188,7 +197,7 @@ public class ALU {
     public static synchronized ALU getInstance(BufferedReader f,ArrayList<String> all,HashMap<String,Integer> b,HashMap<String,Integer> labels){
         if(alu == null)
         {
-            alu = new ALU(f,all,b,labels);
+            alu = new ALU(f,all,b,labels);// okkk understood
         }
         return alu;
     }

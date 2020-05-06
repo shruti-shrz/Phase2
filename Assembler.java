@@ -1,9 +1,6 @@
 package Simulator;
 import java.io.BufferedReader;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class PreParser{
     ArrayList<String> all = new ArrayList<>();
@@ -26,13 +23,10 @@ class PreParser{
                     }
 
                     lineNum++;
-                    // System.out.println(labels);
 
                 }
             }
             this.storeMem(all);
-          //  System.out.println(base);
-            //System.out.println(labels);
         }catch(Exception e)
         {
             e.printStackTrace();
@@ -41,12 +35,10 @@ class PreParser{
     }
 
     void storeMem(ArrayList<String> val){
-       // System.out.println("recheck");
         String[] set;
         int mc = 0;
         for(int i =1;i<textIndex(val);i++){
             if(val.get(i).charAt(val.get(i).length()-1)==':') {
-              //  System.out.println("check");
                 set = val.get(i + 1).split("[ ,]+");
                 base.put(val.get(i).substring(0,val.get(i).length()-1),mc);
                 for (int j = 1; j < set.length; j++) {
@@ -74,24 +66,15 @@ class Parser{
     Dictionary<String,List<String>> opcodes;
     ArrayList<String> allLines;
     Memory m;
-    int[] Registers;
+    Registers r;
     String[] arr;
-  //  final Lock pipelineLock = new ReentrantLock();
     PreParser q;
     static int c=0;
     String[] currInstr;
+    int[] memlatch;
    String[] decodeinst(String line){
-//       if (line.charAt(line.length() - 1) == ':') {
-//           line = line.substring(0, line.length() - 1);
-//           arr[0] = "-2";
-//       }
        String[] set = line.split("[ ,]+");
-//           for(int j=0;j<set.length;j++){
-//               System.out.print(set[j]+" ");
-//           }
        List<String> l = opcodes.get(set[0].toUpperCase());
-    //System.out.println(l);
-//       System.out.println(l.get(1));
     if(l==null){
         arr[0] = "-2";
     }else
@@ -113,24 +96,12 @@ class Parser{
         }else
         if((l.get(1)=="i" && l.get(0)=="9") || (l.get(1)=="i" && l.get(0)=="11"))
         {
-//            System.out.println(set);
-//            System.out.println(n);
-//            System.out.println(l.get(0));
             arr[0] = l.get(0);
             arr[1] = set[1].substring(1);
             arr[2] = set[2];
-//            for(int i=0;i<3;i++)
-//            {
-//                System.out.println(arr[i]);
-//            }
         }else
         if(l.get(1)=="i")
         {
-            System.out.print("its beq");
-//            for(int i=0;i<set.length;i++)
-//            {
-//                System.out.println(set[i]);
-//            }
             arr[0] = l.get(0);
             arr[1] = set[1].substring(1);
             arr[2] = set[2].substring(1);
@@ -149,26 +120,20 @@ class Parser{
     }
     boolean areDependent(String[] curr, String[] prv)
     {
-//        for(int j=0;j<curr.length;j++) {
-//            System.out.println(curr[j] + " ");
-//        }
-        if(prv[0].equals("-1"))
+        if(prv[0].equals("-2"))
         {
             return false;
         }
-//        for(int j=0;j<prv.length;j++) {
-//            System.out.println(prv[j] + " ");
-//        }
-        if(prv[1].equals(curr[2]) || prv[1].equals(curr[3]))
+        if((prv[1].equals(curr[2]) || prv[1].equals(curr[3])) && Integer.parseInt(prv[0])!= 5 && Integer.parseInt(prv[0])!= 6 && Integer.parseInt(curr[0])!= 9 && Integer.parseInt(prv[0])!= 3)// we have to remove branch cases
         {
-            System.out.println("pagal aadmi");
             return true;
         }
         else
             return false;
     }
-   String[] prevInstr;
-//    String[] currInstr;
+    String[] prevInstr;
+    int k;
+    int no_of_instructions;
     public void startSimulation()
     {
         String line;
@@ -176,140 +141,124 @@ class Parser{
         for(int i=0;i<prevInstr.length;i++)
         prevInstr[i] = "-1";
         while (alu.counter < (allLines.size())){
-//                System.out.println("1st Stall " + stall);
             line = allLines.get(alu.counter);
-            //System.out.println(alu.counter +" "+ line);
-//                int flag=0;
-            currInstr = decodeinst(line);
+            currInstr = decodeinst(line); // stage 2, instruction decode
             if(currInstr[0].equals("-2"))
             {
                 alu.counter++;
-//                continue;
             }
             if(currInstr[0].equals("8")){
                 break;
             }
-//            if (line.charAt(line.length() - 1) == ':') {
-//                line = line.substring(0, line.length() - 1);
+
+
+//            if((prevInstr[0] == "2" && areDependent(currInstr, prevInstr) == true) || (prevInstr[0] == "11" && areDependent(currInstr, prevInstr) == true))// here this stall is because of lw and la instructions
+//            {
+//                dataforwarding_memwb(); // dataforwarding from memwb latch
+//                stall++;
+//                no_of_instructions++;
+//            }else
+//            if (areDependent(currInstr, prevInstr) == true ) { // here dtaforwarding for RAW and no stall
+//
+//                dataforwarding_exemem();// dataforwarding from exmem latch
+//                no_of_instructions++;
 //            }
-//            for(int i=0;i<currInstr.length;i++)
-
-
-
-
-//            if (q.labels.containsKey(currInstr[0])) {
-//                System.out.println("c2");
-//                alu.counter++;
-//                continue;
-//            }
-            for(int j=0;j<currInstr.length;j++)
-            {
-                System.out.print(currInstr[j] + " ");
-            }
-//            if(prevInstr[0]!="-1") {
-//                for (int j = 0; j < prevInstr.length; j++) {
-//                    System.out.println(prevInstr[j] + " ");
-//                }
-//            }
-            System.out.println("heyy");
-            if (currInstr[0] == "5" || currInstr[0] == "6") {
-                stall = stall + 2;// pipelineLock.lock();
-            }else
-            if((prevInstr[0].equals("11")&&currInstr[0].equals("2"))||(prevInstr[0].equals("11")&&currInstr[0].equals("3")))
-                stall++;
-            if (areDependent(currInstr, prevInstr) == true) {
-                stall++;
-                //  pipelineLock.lock();
-            }
-//                for(int i=0;i<currInstr.length;i++)
-//                    prevInstr[i] = currInstr[i];
-//  alu.executer(currInstr);
+//                else
+//                 if(prevInstr[0]=="5" || prevInstr[0]=="6")// here dataforwarding and 1 stall for all branch cases,
+//                 {
+//                     dataforwarding_exemem(); // dataforwarding from exemem latch for branch instruction i.e. counter value of label
+//                     stall++;
+//                     no_of_instructions++;
+//                 }
+//            else
+//            {
+                k = alu.executer(currInstr);// stage 3 execute, execute for independent instructions
+                no_of_instructions++;
+            //}
                 for(int i=0;i<currInstr.length;i++)
                prevInstr[i] = currInstr[i];
 
-//                for(int i=0;i<prevInstr.length;i++)
-//                System.out.println(prevInstr[i]);
-               // String[] finalCurrInstr = currInstr;
-            int k;
-                k = alu.executer(currInstr,Registers);
+
             if(Integer.parseInt(currInstr[0])==3)
             {
-                mem(k,currInstr);
+                mem(k,currInstr);// mem stage 4
             }
             if(Integer.parseInt(currInstr[0])==2)
             {
                 k =  mem(k,currInstr);
+              //  Registers[Integer.parseInt(currInstr[1])] = k;
             }
-                wb(k,currInstr);
-//                new Thread(() -> {
-//                    try {
-//                        Thread.sleep(50);
-//                    } catch (Exception e) {  }
-//                    alu.executer(finalCurrInstr);
-////                    alu.counter.getAndIncrement();
-//                    try {
-//                        //pipelineLock.notify();
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                   // for(int i=0;i<alu.getReg().length;i++)
-//                   // System.out.println(alu.getReg());
-//                }).start();
-//                try {
-//                    Thread.sleep(50);
-//                } catch (Exception e) {  }
+          //  if(Integer.parseInt(currInstr[0])==2)
+              wb(k,currInstr); // write back stage 5
         }
-       // }
+        System.out.println(m.getMem());
+       // for(int i=0;i<Registers.length;i++)
+       r.printreg();
+        System.out.println();
         System.out.println("Stall " + stall);
+        System.out.println("No. of instructions " + no_of_instructions);
+        int cycles = no_of_instructions + 4 + stall;
+        System.out.println("No. of cycles " + cycles);
     }
     ALU alu;
-//    final Lock queueLock = new ReentrantLock();
     Parser(BufferedReader file){
         q = new PreParser(file);
         allLines = q.getList();
-//        System.out.println(allLines);
-//        System.out.println(q.labels);
+        r = Registers.getInstance();
         alu = ALU.getInstance(file,allLines,q.base,q.labels);
         Opcodes pt = Opcodes.getInstance();
         opcodes = pt.opt();
         arr = new String[4];
         currInstr = new String[4];
         prevInstr = new String[4];
-        Registers = new int[32];
         m = Memory.getInstance();
-//        prevInstr = new String[4];
-//        currInstr = new String[4];
-//        System.out.println(base);
+        memlatch = new int[32];
     }
     int mem(int v,String[] g)
     {
+       // memlatch = r.getC();
         if(Integer.parseInt(g[0])==2)
-        return m.getMem().get(v);
+        {
+
+            //return m.getMem().get(v);
+            return m.get(v);
+        }
         else
             if(Integer.parseInt(g[0])==3)
             {
-                m.getMem().set(v,Registers[Integer.parseInt(g[1])]);
+                m.set(v,r.getreg(Integer.parseInt(g[1])));
             }
             return 0;
     }
     ALU getalu(){
         return alu;
     }
-    int[] getReg()
-    {
-        return Registers;
-    }
+
     void wb(int val,String[] g)
     {
-        if(val!=-1)
+        if(val!=-1 && g[0]!="3")
         {
-
-            Registers[Integer.parseInt(g[1])] = val;
+            System.out.println(Integer.parseInt(g[1])+"  " +val);
+            r.insert(Integer.parseInt(g[1]),val);
+           // Registers[Integer.parseInt(g[1])] = val;
         }
-
-
     }
-
+    int exmem(String[] curr)
+    {
+        return alu.executer(curr);
+    }
+    int memwb(String[] curr)
+    {
+       return alu.executer(curr);
+    }
+    void dataforwarding_memwb()
+    {
+            k = memwb(currInstr);
+    }
+    void dataforwarding_exemem()
+    {
+        k = exmem(currInstr);
+    }
 }
 
 
